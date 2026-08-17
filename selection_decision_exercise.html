@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Phenotype to EBV: Selection Decision Exercise</title>
+<style>
+:root{
+  --navy:#17324d; --blue:#1769aa; --light:#f4f7fa; --mid:#d9e2ec;
+  --green:#217a4b; --red:#b42318; --gold:#9a6700; --text:#263238;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--light);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+.container{max-width:1100px;margin:auto;padding:24px}
+header{background:white;border:1px solid var(--mid);border-radius:14px;padding:26px;margin-bottom:20px}
+h1{margin:0 0 8px;color:var(--navy);font-size:30px}
+h2{color:var(--navy);margin-top:0}
+h3{color:var(--blue)}
+.subtitle{color:#52606d;font-size:17px}
+.badges span{display:inline-block;background:#e8f1f8;color:var(--navy);padding:5px 10px;border-radius:20px;margin:6px 5px 0 0;font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1.35fr;gap:20px}
+.card{background:white;border:1px solid var(--mid);border-radius:14px;padding:22px;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th,td{border-bottom:1px solid #e4e9ee;padding:10px;text-align:center}
+th{background:#eef3f7;color:var(--navy)}
+.note{border-left:5px solid var(--blue);background:#edf6fc;padding:14px 16px;margin:15px 0;border-radius:6px}
+.warning{border-left-color:#d97706;background:#fff8eb}
+.success{border-left-color:var(--green);background:#eef9f2}
+.question{font-weight:700;font-size:18px}
+.choice{display:block;border:1px solid var(--mid);border-radius:8px;padding:11px;margin:8px 0;cursor:pointer}
+.choice:hover{background:#f6f9fb}
+input[type=number]{width:130px;padding:10px;border:1px solid #aab7c4;border-radius:7px;font-size:16px}
+button{background:var(--blue);color:white;border:0;border-radius:8px;padding:11px 17px;font-weight:700;cursor:pointer}
+button.secondary{background:#66788a}
+button:disabled{opacity:.5;cursor:not-allowed}
+.feedback{margin-top:12px;padding:12px;border-radius:7px;display:none}
+.correct{background:#eaf7ef;color:#17663b}
+.incorrect{background:#fff0ef;color:#8b1e17}
+.step{display:none}
+.step.active{display:block}
+.progress{height:10px;background:#dfe7ee;border-radius:10px;overflow:hidden;margin:12px 0 20px}
+.bar{height:100%;background:var(--blue);width:20%;transition:.3s}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi div{background:#f5f8fa;border:1px solid var(--mid);padding:12px;border-radius:8px;text-align:center}
+.kpi strong{display:block;font-size:21px;color:var(--navy)}
+.formula{font-family:"Courier New",monospace;background:#f1f3f5;border:1px solid #d8dee4;padding:10px;text-align:center;border-radius:7px}
+.small{font-size:13px;color:#5b6873}
+
+.worked-panel{background:#fbfcfd;border:1px solid var(--mid);border-radius:10px;padding:16px;margin:0 0 20px}
+.worked-panel h3{margin:0 0 8px;color:var(--navy)}
+.worked-intro{margin:0 0 12px;font-size:13px;color:#5b6873}
+.worked-empty{padding:12px;background:#f5f8fa;border-radius:8px;color:#66788a;font-size:14px}
+.worked-entry{border:1px solid #e4e9ee;border-left:4px solid var(--blue);background:white;border-radius:7px;padding:10px 12px;margin:9px 0}
+.worked-entry strong{color:var(--navy)}
+.worked-calc{font-family:"Courier New",monospace;background:#f1f3f5;padding:7px 9px;border-radius:5px;margin-top:6px;white-space:pre-wrap}
+footer{font-size:13px;color:#65727d;margin:20px 0;text-align:center;}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>From Phenotype to EBV: Who Should We Select?</h1>
+  <div class="subtitle">Interactive postgraduate Animal Breeding exercise — separating environmental effects, estimating simple EBVs, interpreting accuracy, and making a selection decision.</div>
+  <div class="badges">
+    <span>Phenotype vs genotype</span><span>Fixed effects</span><span>Heritability</span>
+    <span>EBV</span><span>Accuracy</span><span>Response to selection</span>
+  </div>
+</header>
+
+<div class="grid">
+<section>
+  <div class="card">
+    <h2>Scenario</h2>
+    <p>You are the geneticist advising a pig breeding nucleus. Three young boars have been tested for post-weaning weight gain. They were raised in different pens, and the pen environment was not identical.</p>
+    <p><strong>Your task:</strong> decide which animals have the greatest genetic merit — not simply which animals performed best phenotypically.</p>
+    <div class="note warning"><strong>Important:</strong> In this exercise, an EBV based only on an animal's own adjusted record is a simplified teaching estimate. It is not a full BLUP EBV.</div>
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <table>
+      <tr><th>Boar</th><th>Observed gain</th><th>Pen</th><th>Pen mean</th></tr>
+      <tr><td><strong>A</strong></td><td>55 kg</td><td>1</td><td>60 kg</td></tr>
+      <tr><td><strong>B</strong></td><td>48 kg</td><td>2</td><td>40 kg</td></tr>
+      <tr><td><strong>C</strong></td><td>52 kg</td><td>3</td><td>45 kg</td></tr>
+    </table>
+    <p><strong>Reference population mean = 50 kg</strong></p>
+  </div>
+</section>
+
+<section class="card">
+  <div class="progress"><div id="bar" class="bar"></div></div>
+
+  <div class="worked-panel" id="workedPanel">
+    <h3>Worked so far</h3>
+    <p class="worked-intro">As you complete each step, your answers and calculations will be recorded here. This gives you a running record of how you moved from the phenotype to the selection decision.</p>
+    <div id="workedEntries">
+      <div class="worked-empty" id="workedEmpty">Nothing completed yet. Your work will appear here after you successfully complete each step.</div>
+    </div>
+  </div>
+
+  <div id="step1" class="step active">
+    <h2>1. The phenotype trap</h2>
+    <p class="question">Based on observed performance alone, which boar would you select?</p>
+    <label class="choice"><input type="radio" name="q1" value="A"> Boar A</label>
+    <label class="choice"><input type="radio" name="q1" value="B"> Boar B</label>
+    <label class="choice"><input type="radio" name="q1" value="C"> Boar C</label>
+    <button onclick="checkChoice('q1','A','f1')">Check</button>
+    <div id="f1" class="feedback"></div>
+  </div>
+
+  <div id="step2" class="step">
+    <h2>2. Remove the pen effect</h2>
+    <p>For this teaching example, calculate the pen effect as:</p>
+    <div class="formula">Pen effect = Pen mean − population mean</div>
+    <table>
+      <tr><th>Pen</th><th>Calculation</th><th>Pen effect</th></tr>
+      <tr><td>1</td><td>60 − 50</td><td><input id="p1" type="number"></td></tr>
+      <tr><td>2</td><td>40 − 50</td><td><input id="p2" type="number"></td></tr>
+      <tr><td>3</td><td>45 − 50</td><td><input id="p3" type="number"></td></tr>
+    </table>
+    <button onclick="checkNumbers([['p1',10],['p2',-10],['p3',-5]],'f2')">Check</button>
+    <div id="f2" class="feedback"></div>
+  </div>
+
+  <div id="step3" class="step">
+    <h2>3. Adjust the phenotypes</h2>
+    <p>Calculate:</p>
+    <div class="formula">Adjusted phenotype = observed phenotype − pen effect</div>
+    <table>
+      <tr><th>Boar</th><th>Calculation</th><th>Adjusted phenotype</th></tr>
+      <tr><td>A</td><td>55 − 10</td><td><input id="a3" type="number"></td></tr>
+      <tr><td>B</td><td>48 − (−10)</td><td><input id="b3" type="number"></td></tr>
+      <tr><td>C</td><td>52 − (−5)</td><td><input id="c3" type="number"></td></tr>
+    </table>
+    <button onclick="checkNumbers([['a3',45],['b3',58],['c3',57]],'f3')">Check</button>
+    <div id="f3" class="feedback"></div>
+  </div>
+
+  <div id="step4" class="step">
+    <h2>4. Estimate an EBV from the own record</h2>
+    <p>Suppose the heritability of post-weaning weight gain is <strong>h² = 0.30</strong>.</p>
+    <div class="formula">EBV = h² × (adjusted phenotype − population mean)</div>
+    <p>Calculate the simple own-record EBV for each boar.</p>
+    <table>
+      <tr><th>Boar</th><th>EBV</th></tr>
+      <tr><td>A</td><td><input id="a4" type="number" step="0.1"> kg</td></tr>
+      <tr><td>B</td><td><input id="b4" type="number" step="0.1"> kg</td></tr>
+      <tr><td>C</td><td><input id="c4" type="number" step="0.1"> kg</td></tr>
+    </table>
+    <button onclick="checkNumbers([['a4',-1.5],['b4',2.4],['c4',2.1]],'f4',0.1)">Check</button>
+    <div id="f4" class="feedback"></div>
+    <div class="note success"><strong>Interpretation:</strong> the EBV is not the animal's expected phenotype. It is an estimate of its additive genetic merit relative to the reference population.</div>
+  </div>
+
+  <div id="step5" class="step">
+    <h2>5. Now consider accuracy</h2>
+    <p>Suppose additional information gives the following accuracies:</p>
+    <table>
+      <tr><th>Boar</th><th>Own-record EBV</th><th>Accuracy</th></tr>
+      <tr><td>A</td><td>−1.5</td><td>0.55</td></tr>
+      <tr><td>B</td><td>+2.4</td><td>0.55</td></tr>
+      <tr><td>C</td><td>+2.1</td><td>0.90</td></tr>
+    </table>
+    <p class="question">Which statement is best?</p>
+    <label class="choice"><input type="radio" name="q5" value="1"> C has the highest EBV.</label>
+    <label class="choice"><input type="radio" name="q5" value="2"> B has the highest EBV, so accuracy is irrelevant.</label>
+    <label class="choice"><input type="radio" name="q5" value="3"> B has a slightly higher EBV, but C's EBV is much more accurate.</label>
+    <button onclick="checkChoice('q5','3','f5')">Check</button>
+    <div id="f5" class="feedback"></div>
+  </div>
+
+  <div id="step6" class="step">
+    <h2>6. A selection decision</h2>
+    <p>You can select <strong>two boars</strong>. Your immediate breeding objective is increased post-weaning weight gain, but you want reasonable confidence in the predictions.</p>
+    <table>
+      <tr><th>Boar</th><th>EBV (kg)</th><th>Accuracy</th></tr>
+      <tr><td>A</td><td>−1.5</td><td>0.55</td></tr>
+      <tr><td>B</td><td>+2.4</td><td>0.55</td></tr>
+      <tr><td>C</td><td>+2.1</td><td>0.90</td></tr>
+    </table>
+    <p>Select your two candidates:</p>
+    <label class="choice"><input type="checkbox" name="sel" value="A"> A</label>
+    <label class="choice"><input type="checkbox" name="sel" value="B"> B</label>
+    <label class="choice"><input type="checkbox" name="sel" value="C"> C</label>
+    <button onclick="selectionDecision()">Submit selection</button>
+    <div id="f6" class="feedback"></div>
+  </div>
+
+  <div id="step7" class="step">
+    <h2>7. Predict response to selection</h2>
+    <p>Suppose the two selected boars have an average EBV of:</p>
+    <div class="formula">Mean selected EBV = +2.25 kg</div>
+    <p>For a simple parent-average interpretation, the expected genetic contribution from these sires to their progeny is approximately half of the sire breeding value.</p>
+    <div class="formula">Expected sire contribution = 0.5 × mean sire EBV</div>
+    <p>Calculate the expected sire contribution to progeny breeding value:</p>
+    <input id="r7" type="number" step="0.01"> kg
+    <button onclick="checkNumbers([['r7',1.125]],'f7',0.01)">Check</button>
+    <div id="f7" class="feedback"></div>
+    <div class="note"><strong>Discussion:</strong> this is not the same thing as the full response to selection. Response depends on selection intensity, accuracy, genetic variation, generation interval, and the complete breeding objective.</div>
+  </div>
+
+  <div id="step8" class="step">
+    <h2>8. Why BLUP is different</h2>
+    <p>In a real breeding program, EBVs are not normally calculated by an arbitrary weighted average of “own BV” and parental EBV. Instead, a mixed model can use many sources of information simultaneously.</p>
+    <div class="formula">y = Xb + Zu + e</div>
+    <ul>
+      <li><strong>y</strong> = observed records</li>
+      <li><strong>b</strong> = fixed effects such as contemporary group/pen</li>
+      <li><strong>u</strong> = additive genetic effects to be predicted</li>
+      <li><strong>e</strong> = residual effects</li>
+    </ul>
+    <p><strong>Key idea:</strong> BLUP predicts genetic merit using the animal's record and the information contained in relatives, pedigree, repeated records, progeny and other connected records.</p>
+    <div class="note success"><strong>Take-home:</strong> phenotype → adjustment for systematic effects → genetic prediction → accuracy → selection decision.</div>
+    <button onclick="finish()">Finish exercise</button>
+  </div>
+
+  <div id="complete" class="step">
+    <h2>Exercise complete</h2>
+    <div class="kpi">
+      <div><strong>55 kg</strong>Raw performance can mislead</div>
+      <div><strong>h² = 0.30</strong>Phenotype is not breeding value</div>
+      <div><strong>Accuracy</strong>Confidence matters</div>
+    </div>
+    <div class="note">
+      <strong>Questions:</strong>
+      <ol>
+        <li>Why did the top raw performer look best initially?</li>
+        <li>What assumption is being made when we subtract a contemporary group effect?</li>
+        <li>Why is the own-record EBV smaller than the phenotypic deviation?</li>
+        <li>Why might an animal with a slightly lower EBV be preferable if its accuracy is much higher?</li>
+        <li>What additional information would BLUP use?</li>
+        <li>How would genomic information change this exercise for young animals?</li>
+        <li>What happens if the two best sires are closely related to the rest of the breeding population?</li>
+      </ol>
+      <button onclick="toggleAnswers()" style="margin-top: 15px;">Check Answers</button>
+      
+      <div id="modelAnswers" style="display:none; margin-top: 20px; border-top: 1px solid #aab7c4; padding-top: 15px;">
+        <h4>Model Answers:</h4>
+        <p><strong>1. Why did the top raw performer look best initially?</strong><br>
+        This animal had the highest absolute observed phenotype (raw performance). Looking only at the raw data ignores the environmental advantage. The animal happened to be raised in the contemporary group that had the most favourable environmental conditions, which artificially inflated its raw phenotype.</p>
+
+        <p><strong>2. What assumption is being made when we subtract a contemporary group effect?</strong><br>
+        We assume that the environmental conditions affect all animals within that specific group equally. We assume there is no Genotype by Environment interaction occurring, and that genetics are distributed somewhat randomly across the groups (meaning the group mean truly reflects the environment).</p>
+
+        <p><strong>3. Why is the own-record EBV smaller than the phenotypic deviation?</strong><br>
+        The phenotypic deviation from the mean includes variance from both additive genetics and the environment. Because heritability is less than 1.0, only a proportion of that observed superiority is actually due to additive genetic effects that can be passed on to progeny. Multiplying by heritability "shrinks" the estimate back toward the population mean.</p>
+
+        <p><strong>4. Why might an animal with a slightly lower EBV be preferable if its accuracy is much higher?</strong><br>
+        Selection decisions involve risk management. A low-accuracy EBV has a wide confidence interval, meaning the true breeding value could end up being significantly lower than the estimate once progeny are born. An animal with high accuracy provides certainty.</p>
+
+        <p><strong>5. What additional information would BLUP use?</strong><br>
+        Pedigree records, progeny records, repeated records, correlated traits, and simultaneous fixed effects (solving for environmental and genetic effects at the same time).</p>
+
+        <p><strong>6. How would genomic information change this exercise for young animals?</strong><br>
+        It would dramatically increase the accuracy of the EBV for young, unproven animals. Instead of relying purely on an own-record and a parent-average, genomic testing analyses the actual SNPs to determine exactly which alleles were inherited, allowing differentiation between full siblings at birth.</p>
+
+        <p><strong>7. What happens if the two best sires are closely related to the rest of the breeding population?</strong><br>
+        Selecting them will rapidly increase the rate of inbreeding within the herd or flock. This increases the risk of inbreeding depression and the chance of expressing deleterious recessive mutations. This illustrates the need for tactical mate selection and Optimal Contribution Selection (OCS).</p>
+      </div>
+    </div>
+    <button class="secondary" onclick="location.reload()">Restart</button>
+  </div>
+</section>
+</div>
+
+<footer>
+  Created by Sameer D. Pant
+</footer>
+</div>
+
+<script>
+let step=1;
+const total=8;
+const worked=[];
+
+function show(n){
+  document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));
+  document.getElementById(n==='complete'?'complete':'step'+n).classList.add('active');
+  if(n!=='complete'){
+    document.getElementById('bar').style.width=(n/total*100)+'%';
+    step=n;
+  }
+}
+
+function feedback(id,ok,msg){
+  const e=document.getElementById(id);
+  e.className='feedback '+(ok?'correct':'incorrect');
+  e.style.display='block';
+  e.innerHTML=msg;
+}
+
+function addWorked(title, details){
+  if(worked.some(x=>x.title===title)) return;
+  worked.push({title,details});
+  const container=document.getElementById('workedEntries');
+  const empty=document.getElementById('workedEmpty');
+  if(empty) empty.remove();
+  const entry=document.createElement('div');
+  entry.className='worked-entry';
+  const heading=document.createElement('strong');
+  heading.textContent=title;
+  const calc=document.createElement('div');
+  calc.className='worked-calc';
+  calc.textContent=details;
+  entry.appendChild(heading);
+  entry.appendChild(calc);
+  container.appendChild(entry);
+}
+
+function value(id){ return document.getElementById(id).value; }
+
+function checkChoice(name,correct,id){
+  const el=document.querySelector('input[name="'+name+'"]:checked');
+  if(!el){feedback(id,false,'Please select an answer first.');return;}
+  if(el.value===correct){
+    if(name==='q1'){
+      addWorked('Step 1 — Phenotype trap','Selected boar: '+el.value+' (highest observed gain = 55 kg)');
+    }else if(name==='q5'){
+      addWorked('Step 5 — Accuracy','Selected statement: B has a slightly higher EBV, but C\'s EBV is much more accurate.');
+    }
+    feedback(id,true,'Correct. '+(name==='q1'?'Boar A has the highest observed performance, but that is exactly why we need to adjust for environmental effects.':'Good interpretation. Continue to the next step.'));
+    setTimeout(()=>show(step+1),900);
+  }else feedback(id,false,'Not quite. Think about what the question is asking and examine the data again.');
+}
+
+function checkNumbers(items,id,tol=0){
+  let ok=true;
+  for(const [field,expected] of items){
+    const v=parseFloat(document.getElementById(field).value);
+    if(isNaN(v)||Math.abs(v-expected)>tol) ok=false;
+  }
+  if(ok){
+    if(id==='f2'){
+      addWorked('Step 2 — Pen effects','Pen 1: 60 − 50 = '+value('p1')+' kg\nPen 2: 40 − 50 = '+value('p2')+' kg\nPen 3: 45 − 50 = '+value('p3')+' kg');
+    }else if(id==='f3'){
+      addWorked('Step 3 — Adjusted phenotypes','A: 55 − 10 = '+value('a3')+' kg\nB: 48 − (−10) = '+value('b3')+' kg\nC: 52 − (−5) = '+value('c3')+' kg');
+    }else if(id==='f4'){
+      addWorked('Step 4 — Own-record EBVs','A: 0.30 × (45 − 50) = '+value('a4')+' kg\nB: 0.30 × (58 − 50) = '+value('b4')+' kg\nC: 0.30 × (57 − 50) = '+value('c4')+' kg');
+    }else if(id==='f7'){
+      addWorked('Step 7 — Expected sire contribution','0.5 × 2.25 = '+value('r7')+' kg');
+    }
+    feedback(id,true,'Correct. Your calculations are consistent with the simplified model used in this exercise.');
+    setTimeout(()=>show(step+1),900);
+  }else feedback(id,false,'Some values are incorrect. Check the formula and sign of the environmental effect.');
+}
+
+function selectionDecision(){
+  const selected=[...document.querySelectorAll('input[name="sel"]:checked')].map(x=>x.value);
+  if(selected.length!==2){feedback('f6',false,'Select exactly two boars.');return;}
+  if(selected.includes('B')&&selected.includes('C')){
+    addWorked('Step 6 — Selection decision','Selected boars: '+selected.join(' and ')+'\nReason: both have positive EBVs; C also has substantially higher accuracy.');
+    feedback('f6',true,'A defensible choice for this simplified exercise is B and C: both have positive EBVs, while C also has substantially higher accuracy.');
+    setTimeout(()=>show(7),1100);
+  }else feedback('f6',false,'Reconsider the EBVs first. Your immediate objective is increased post-weaning weight gain, and you also want reasonable confidence in the predictions.');
+}
+
+function finish(){show('complete');}
+
+function toggleAnswers(){
+  const el = document.getElementById('modelAnswers');
+  if(el.style.display === 'none'){
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>
