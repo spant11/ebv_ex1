@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Phenotype to EBV: Selection Decision Exercise</title>
+<style>
+:root{
+  --navy:#17324d; --blue:#1769aa; --light:#f4f7fa; --mid:#d9e2ec;
+  --green:#217a4b; --red:#b42318; --gold:#9a6700; --text:#263238;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--light);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+.container{max-width:1100px;margin:auto;padding:24px}
+header{background:white;border:1px solid var(--mid);border-radius:14px;padding:26px;margin-bottom:20px}
+h1{margin:0 0 8px;color:var(--navy);font-size:30px}
+h2{color:var(--navy);margin-top:0}
+h3{color:var(--blue)}
+.subtitle{color:#52606d;font-size:17px}
+.badges span{display:inline-block;background:#e8f1f8;color:var(--navy);padding:5px 10px;border-radius:20px;margin:6px 5px 0 0;font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1.35fr;gap:20px}
+.card{background:white;border:1px solid var(--mid);border-radius:14px;padding:22px;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th,td{border-bottom:1px solid #e4e9ee;padding:10px;text-align:center}
+th{background:#eef3f7;color:var(--navy)}
+.note{border-left:5px solid var(--blue);background:#edf6fc;padding:14px 16px;margin:15px 0;border-radius:6px}
+.warning{border-left-color:#d97706;background:#fff8eb}
+.success{border-left-color:var(--green);background:#eef9f2}
+.question{font-weight:700;font-size:18px}
+.choice{display:block;border:1px solid var(--mid);border-radius:8px;padding:11px;margin:8px 0;cursor:pointer}
+.choice:hover{background:#f6f9fb}
+input[type=number]{width:130px;padding:10px;border:1px solid #aab7c4;border-radius:7px;font-size:16px}
+button{background:var(--blue);color:white;border:0;border-radius:8px;padding:11px 17px;font-weight:700;cursor:pointer}
+button.secondary{background:#66788a}
+button:disabled{opacity:.5;cursor:not-allowed}
+.feedback{margin-top:12px;padding:12px;border-radius:7px;display:none}
+.correct{background:#eaf7ef;color:#17663b}
+.incorrect{background:#fff0ef;color:#8b1e17}
+.step{display:none}
+.step.active{display:block}
+.progress{height:10px;background:#dfe7ee;border-radius:10px;overflow:hidden;margin:12px 0 20px}
+.bar{height:100%;background:var(--blue);width:20%;transition:.3s}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi div{background:#f5f8fa;border:1px solid var(--mid);padding:12px;border-radius:8px;text-align:center}
+.kpi strong{display:block;font-size:21px;color:var(--navy)}
+.formula{font-family:"Courier New",monospace;background:#f1f3f5;border:1px solid #d8dee4;padding:10px;text-align:center;border-radius:7px}
+.small{font-size:13px;color:#5b6873}
+.worked-panel{background:#fbfcfd;border:1px solid var(--mid);border-radius:10px;padding:16px;margin:0 0 20px}
+.worked-panel h3{margin:0 0 8px;color:var(--navy)}
+.worked-intro{margin:0 0 12px;font-size:13px;color:#5b6873}
+.worked-empty{padding:12px;background:#f5f8fa;border-radius:8px;color:#66788a;font-size:14px}
+.worked-entry{border:1px solid #e4e9ee;border-left:4px solid var(--blue);background:white;border-radius:7px;padding:10px 12px;margin:9px 0}
+.worked-entry strong{color:var(--navy)}
+.worked-calc{font-family:"Courier New",monospace;background:#f1f3f5;padding:7px 9px;border-radius:5px;margin-top:6px;white-space:pre-wrap}
+footer{font-size:13px;color:#65727d;margin:20px 0; text-align: center;}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.kpi{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>From Phenotype to EBV: Who Should We Select?</h1>
+  <div class="subtitle">Interactive postgraduate Animal Breeding exercise — separating environmental effects, estimating simple EBVs, interpreting accuracy, and making a selection decision.</div>
+  
+  <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--mid); display: flex; align-items: center; gap: 12px;">
+    <label for="scenarioSelect" style="font-weight: 700; color: var(--navy); font-size: 16px;">Select a Scenario to Begin:</label>
+    <select id="scenarioSelect" onchange="changeScenario()" style="padding: 9px; border-radius: 8px; border: 1px solid var(--mid); font-size: 15px; background: #fbfcfd; cursor: pointer; color: var(--text);">
+      <option value="0">Scenario 1: Pigs (Post-weaning gain)</option>
+      <option value="1">Scenario 2: Sheep (Weaning weight)</option>
+      <option value="2">Scenario 3: Cattle (400-day weight)</option>
+    </select>
+  </div>
+
+  <div class="badges" style="margin-top: 15px;">
+    <span>Phenotype vs genotype</span><span>Fixed effects</span><span>Heritability</span>
+    <span>EBV</span><span>Accuracy</span><span>Response to selection</span>
+  </div>
+</header>
+
+<div class="grid">
+<section>
+  <div class="card">
+    <h2>Scenario</h2>
+    <p>You are the geneticist advising a <span class="dyn-system">pig breeding nucleus</span>. Three young <span class="dyn-animal-pl">boars</span> have been tested for <span class="dyn-trait">post-weaning weight gain</span>. They were raised in different <span class="dyn-env-pl">pens</span>, and the <span class="dyn-env">pen</span> environment was not identical.</p>
+    <p><strong>Your task:</strong> decide which animals have the greatest genetic merit — not simply which animals performed best phenotypically.</p>
+    <div class="note warning"><strong>Important:</strong> In this exercise, an EBV based only on an animal's own adjusted record is a simplified teaching estimate. It is not a full BLUP EBV.</div>
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <table>
+      <tr><th><span class="dyn-animal-cap">Boar</span></th><th>Observed gain</th><th><span class="dyn-env-cap">Pen</span></th><th><span class="dyn-env-cap">Pen</span> mean</th></tr>
+      <tr><td><strong>A</strong></td><td><span id="dt_obs_a">55</span> <span class="dyn-unit">kg</span></td><td>1</td><td><span id="dt_env_mean_a">60</span> <span class="dyn-unit">kg</span></td></tr>
+      <tr><td><strong>B</strong></td><td><span id="dt_obs_b">48</span> <span class="dyn-unit">kg</span></td><td>2</td><td><span id="dt_env_mean_b">40</span> <span class="dyn-unit">kg</span></td></tr>
+      <tr><td><strong>C</strong></td><td><span id="dt_obs_c">52</span> <span class="dyn-unit">kg</span></td><td>3</td><td><span id="dt_env_mean_c">45</span> <span class="dyn-unit">kg</span></td></tr>
+    </table>
+    <p><strong>Reference population mean = <span class="dyn-pop-mean">50</span> <span class="dyn-unit">kg</span></strong></p>
+  </div>
+</section>
+
+<section class="card">
+  <div class="progress"><div id="bar" class="bar"></div></div>
+
+  <div class="worked-panel" id="workedPanel">
+    <h3>Worked so far</h3>
+    <p class="worked-intro">As you complete each step, your answers and calculations will be recorded here. This gives you a running record of how you moved from the phenotype to the selection decision.</p>
+    <div id="workedEntries">
+      <div class="worked-empty" id="workedEmpty">Nothing completed yet. Your work will appear here after you successfully complete each step.</div>
+    </div>
+  </div>
+
+  <div id="step1" class="step active">
+    <h2>1. The phenotype trap</h2>
+    <p class="question">Based on observed performance alone, which <span class="dyn-animal">boar</span> would you select?</p>
+    <label class="choice"><input type="radio" name="q1" value="A"> <span class="dyn-animal-cap">Boar</span> A</label>
+    <label class="choice"><input type="radio" name="q1" value="B"> <span class="dyn-animal-cap">Boar</span> B</label>
+    <label class="choice"><input type="radio" name="q1" value="C"> <span class="dyn-animal-cap">Boar</span> C</label>
+    <button onclick="checkStep1()">Check</button>
+    <div id="f1" class="feedback"></div>
+  </div>
+
+  <div id="step2" class="step">
+    <h2>2. Remove the <span class="dyn-env">pen</span> effect</h2>
+    <p>For this teaching example, calculate the <span class="dyn-env">pen</span> effect as:</p>
+    <div class="formula"><span class="dyn-env-cap">Pen</span> effect = <span class="dyn-env-cap">Pen</span> mean − population mean</div>
+    <table>
+      <tr><th><span class="dyn-env-cap">Pen</span></th><th>Calculation</th><th><span class="dyn-env-cap">Pen</span> effect</th></tr>
+      <tr><td>1</td><td><span id="dt_calc_p1">60 − 50</span></td><td><input id="p1" type="number"></td></tr>
+      <tr><td>2</td><td><span id="dt_calc_p2">40 − 50</span></td><td><input id="p2" type="number"></td></tr>
+      <tr><td>3</td><td><span id="dt_calc_p3">45 − 50</span></td><td><input id="p3" type="number"></td></tr>
+    </table>
+    <button onclick="checkStep2()">Check</button>
+    <div id="f2" class="feedback"></div>
+  </div>
+
+  <div id="step3" class="step">
+    <h2>3. Adjust the phenotypes</h2>
+    <p>Calculate:</p>
+    <div class="formula">Adjusted phenotype = observed phenotype − <span class="dyn-env">pen</span> effect</div>
+    <table>
+      <tr><th><span class="dyn-animal-cap">Boar</span></th><th>Calculation</th><th>Adjusted phenotype</th></tr>
+      <tr><td>A</td><td><span id="dt_calc_a3">55 − 10</span></td><td><input id="a3" type="number"></td></tr>
+      <tr><td>B</td><td><span id="dt_calc_b3">48 − (−10)</span></td><td><input id="b3" type="number"></td></tr>
+      <tr><td>C</td><td><span id="dt_calc_c3">52 − (−5)</span></td><td><input id="c3" type="number"></td></tr>
+    </table>
+    <button onclick="checkStep3()">Check</button>
+    <div id="f3" class="feedback"></div>
+  </div>
+
+  <div id="step4" class="step">
+    <h2>4. Estimate an EBV from the own record</h2>
+    <p>Suppose the heritability of <span class="dyn-trait">post-weaning weight gain</span> is <strong>h² = <span class="dyn-h2">0.30</span></strong>.</p>
+    <div class="formula">EBV = h² × (adjusted phenotype − population mean)</div>
+    <p>Calculate the simple own-record EBV for each <span class="dyn-animal">boar</span>.</p>
+    <table>
+      <tr><th><span class="dyn-animal-cap">Boar</span></th><th>EBV</th></tr>
+      <tr><td>A</td><td><input id="a4" type="number" step="0.1"> <span class="dyn-unit">kg</span></td></tr>
+      <tr><td>B</td><td><input id="b4" type="number" step="0.1"> <span class="dyn-unit">kg</span></td></tr>
+      <tr><td>C</td><td><input id="c4" type="number" step="0.1"> <span class="dyn-unit">kg</span></td></tr>
+    </table>
+    <button onclick="checkStep4()">Check</button>
+    <div id="f4" class="feedback"></div>
+    <div class="note success"><strong>Interpretation:</strong> the EBV is not the animal's expected phenotype. It is an estimate of its additive genetic merit relative to the reference population.</div>
+  </div>
+
+  <div id="step5" class="step">
+    <h2>5. Now consider accuracy</h2>
+    <p>Suppose additional information gives the following accuracies:</p>
+    <table>
+      <tr><th><span class="dyn-animal-cap">Boar</span></th><th>Own-record EBV</th><th>Accuracy</th></tr>
+      <tr><td>A</td><td><span class="dt_ebv_a">−1.5</span></td><td><span class="dt_acc_a">0.55</span></td></tr>
+      <tr><td>B</td><td><span class="dt_ebv_b">+2.4</span></td><td><span class="dt_acc_b">0.55</span></td></tr>
+      <tr><td>C</td><td><span class="dt_ebv_c">+2.1</span></td><td><span class="dt_acc_c">0.90</span></td></tr>
+    </table>
+    <p class="question">Which statement is best?</p>
+    <label class="choice"><input type="radio" name="q5" value="1"> C has the highest EBV.</label>
+    <label class="choice"><input type="radio" name="q5" value="2"> B has the highest EBV, so accuracy is irrelevant.</label>
+    <label class="choice"><input type="radio" name="q5" value="3"> B has a slightly higher EBV, but C's EBV is much more accurate.</label>
+    <button onclick="checkStep5()">Check</button>
+    <div id="f5" class="feedback"></div>
+  </div>
+
+  <div id="step6" class="step">
+    <h2>6. A selection decision</h2>
+    <p>You can select <strong>two <span class="dyn-animal-pl">boars</span></strong>. Your immediate breeding objective is increased <span class="dyn-trait">post-weaning weight gain</span>, but you want reasonable confidence in the predictions.</p>
+    <table>
+      <tr><th><span class="dyn-animal-cap">Boar</span></th><th>EBV (<span class="dyn-unit">kg</span>)</th><th>Accuracy</th></tr>
+      <tr><td>A</td><td><span class="dt_ebv_a">−1.5</span></td><td><span class="dt_acc_a">0.55</span></td></tr>
+      <tr><td>B</td><td><span class="dt_ebv_b">+2.4</span></td><td><span class="dt_acc_b">0.55</span></td></tr>
+      <tr><td>C</td><td><span class="dt_ebv_c">+2.1</span></td><td><span class="dt_acc_c">0.90</span></td></tr>
+    </table>
+    <p>Select your two candidates:</p>
+    <label class="choice"><input type="checkbox" name="sel" value="A"> A</label>
+    <label class="choice"><input type="checkbox" name="sel" value="B"> B</label>
+    <label class="choice"><input type="checkbox" name="sel" value="C"> C</label>
+    <button onclick="selectionDecision()">Submit selection</button>
+    <div id="f6" class="feedback"></div>
+  </div>
+
+  <div id="step7" class="step">
+    <h2>7. Predict response to selection</h2>
+    <p>Suppose the two selected <span class="dyn-animal-pl">boars</span> have an average EBV of:</p>
+    <div class="formula">Mean selected EBV = <span id="dt_step6_mean">+2.25</span> <span class="dyn-unit">kg</span></div>
+    <p>For a simple parent-average interpretation, the expected genetic contribution from these sires to their progeny is approximately half of the sire breeding value.</p>
+    <div class="formula">Expected sire contribution = 0.5 × mean sire EBV</div>
+    <p>Calculate the expected sire contribution to progeny breeding value:</p>
+    <input id="r7" type="number" step="0.01"> <span class="dyn-unit">kg</span>
+    <button onclick="checkStep7()">Check</button>
+    <div id="f7" class="feedback"></div>
+    <div class="note"><strong>Discussion:</strong> this is not the same thing as the full response to selection. Response depends on selection intensity, accuracy, genetic variation, generation interval, and the complete breeding objective.</div>
+  </div>
+
+  <div id="step8" class="step">
+    <h2>8. Why BLUP is different</h2>
+    <p>In a real breeding program, EBVs are not normally calculated by an arbitrary weighted average of “own BV” and parental EBV. Instead, a mixed model can use many sources of information simultaneously.</p>
+    <div class="formula">y = Xb + Zu + e</div>
+    <ul>
+      <li><strong>y</strong> = observed records</li>
+      <li><strong>b</strong> = fixed effects such as contemporary group/<span class="dyn-env">pen</span></li>
+      <li><strong>u</strong> = additive genetic effects to be predicted</li>
+      <li><strong>e</strong> = residual effects</li>
+    </ul>
+    <p><strong>Key idea:</strong> BLUP predicts genetic merit using the animal's record and the information contained in relatives, pedigree, repeated records, progeny and other connected records.</p>
+    <div class="note success"><strong>Take-home:</strong> phenotype → adjustment for systematic effects → genetic prediction → accuracy → selection decision.</div>
+    <button onclick="finish()">Finish exercise</button>
+  </div>
+
+  <div id="complete" class="step">
+    <h2>Exercise complete</h2>
+    <div class="kpi">
+      <div><strong id="kpi_val1">55 kg</strong>Raw performance can mislead</div>
+      <div><strong>h² = <span class="dyn-h2">0.30</span></strong>Phenotype is not breeding value</div>
+      <div><strong>Accuracy</strong>Confidence matters</div>
+    </div>
+    <div class="note">
+      <strong>Questions:</strong>
+      <ol>
+        <li>Why did <span class="dyn-animal-cap">Boar</span> A look best initially?</li>
+        <li>What assumption is being made when we subtract a <span class="dyn-env">pen</span> effect?</li>
+        <li>Why is the own-record EBV smaller than the phenotypic deviation?</li>
+        <li>Why might an animal with a slightly lower EBV be preferable if its accuracy is much higher?</li>
+        <li>What additional information would BLUP use?</li>
+        <li>How would genomic information change this exercise for young animals?</li>
+        <li>What happens if the two best <span class="dyn-animal-pl">boars</span> are closely related to the rest of the breeding population?</li>
+      </ol>
+    </div>
+    <button class="secondary" onclick="changeScenario()">Restart / Try Another Scenario</button>
+  </div>
+</section>
+</div>
+
+<footer>
+  Teaching note: this exercise intentionally uses simplified calculations to expose the logic behind EBVs. It should not be presented as a manual calculation of BLUP.
+</footer>
+</div>
+
+<script>
+let step=1;
+const total=8;
+const worked=[];
+let currentScenario = 0;
+
+const scenarios = [
+  {
+    system: "pig breeding nucleus", animal: "boar", animal_pl: "boars", animal_cap: "Boar",
+    trait: "post-weaning weight gain", env: "pen", env_pl: "pens", env_cap: "Pen", unit: "kg",
+    pop_mean: 50, h2: 0.30,
+    data: [
+      {id: 'A', obs: 55, env_mean: 60, acc: 0.55},
+      {id: 'B', obs: 48, env_mean: 40, acc: 0.55},
+      {id: 'C', obs: 52, env_mean: 45, acc: 0.90}
+    ],
+    step6_mean: 2.25, step7_ans: 1.125
+  },
+  {
+    system: "sheep stud", animal: "ram", animal_pl: "rams", animal_cap: "Ram",
+    trait: "weaning weight", env: "flock", env_pl: "flocks", env_cap: "Flock", unit: "kg",
+    pop_mean: 40, h2: 0.20,
+    data: [
+      {id: 'A', obs: 46, env_mean: 50, acc: 0.40},
+      {id: 'B', obs: 38, env_mean: 30, acc: 0.40},
+      {id: 'C', obs: 41, env_mean: 35, acc: 0.85}
+    ],
+    step6_mean: 1.40, step7_ans: 0.70
+  },
+  {
+    system: "beef cattle stud", animal: "bull", animal_pl: "bulls", animal_cap: "Bull",
+    trait: "400-day weight", env: "pasture", env_pl: "pastures", env_cap: "Pasture", unit: "kg",
+    pop_mean: 400, h2: 0.30,
+    data: [
+      {id: 'A', obs: 440, env_mean: 450, acc: 0.50},
+      {id: 'B', obs: 390, env_mean: 350, acc: 0.50},
+      {id: 'C', obs: 400, env_mean: 370, acc: 0.80}
+    ],
+    step6_mean: 10.50, step7_ans: 5.25
+  }
+];
+
+window.onload = () => { renderScenario(); };
+
+function changeScenario() {
+    currentScenario = parseInt(document.getElementById('scenarioSelect').value);
+    resetUI();
+    renderScenario();
+    show(1);
+}
+
+function resetUI() {
+    document.querySelectorAll('input[type="number"]').forEach(el => el.value = '');
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(el => el.checked = false);
+    document.querySelectorAll('.feedback').forEach(el => { el.style.display = 'none'; el.className = 'feedback'; });
+    worked.length = 0;
+    document.getElementById('workedEntries').innerHTML = '<div class="worked-empty" id="workedEmpty">Nothing completed yet. Your work will appear here after you successfully complete each step.</div>';
+}
+
+function renderScenario() {
+    const s = scenarios[currentScenario];
+    
+    const setTexts = (cls, text) => document.querySelectorAll(cls).forEach(el => el.textContent = text);
+    setTexts('.dyn-system', s.system);
+    setTexts('.dyn-animal-pl', s.animal_pl);
+    setTexts('.dyn-animal', s.animal);
+    setTexts('.dyn-animal-cap', s.animal_cap);
+    setTexts('.dyn-trait', s.trait);
+    setTexts('.dyn-env-pl', s.env_pl);
+    setTexts('.dyn-env', s.env);
+    setTexts('.dyn-env-cap', s.env_cap);
+    setTexts('.dyn-unit', s.unit);
+    setTexts('.dyn-pop-mean', s.pop_mean);
+    setTexts('.dyn-h2', s.h2.toFixed(2));
+    
+    document.getElementById('dt_obs_a').textContent = s.data[0].obs;
+    document.getElementById('dt_obs_b').textContent = s.data[1].obs;
+    document.getElementById('dt_obs_c').textContent = s.data[2].obs;
+    document.getElementById('dt_env_mean_a').textContent = s.data[0].env_mean;
+    document.getElementById('dt_env_mean_b').textContent = s.data[1].env_mean;
+    document.getElementById('dt_env_mean_c').textContent = s.data[2].env_mean;
+    
+    document.getElementById('dt_calc_p1').textContent = `${s.data[0].env_mean} − ${s.pop_mean}`;
+    document.getElementById('dt_calc_p2').textContent = `${s.data[1].env_mean} − ${s.pop_mean}`;
+    document.getElementById('dt_calc_p3').textContent = `${s.data[2].env_mean} − ${s.pop_mean}`;
+    
+    const formatSign = (val) => val < 0 ? `− (−${Math.abs(val)})` : `− ${val}`;
+    document.getElementById('dt_calc_a3').textContent = `${s.data[0].obs} ${formatSign(s.data[0].env_mean - s.pop_mean)}`;
+    document.getElementById('dt_calc_b3').textContent = `${s.data[1].obs} ${formatSign(s.data[1].env_mean - s.pop_mean)}`;
+    document.getElementById('dt_calc_c3').textContent = `${s.data[2].obs} ${formatSign(s.data[2].env_mean - s.pop_mean)}`;
+    
+    const calcEBV = (i) => (s.h2 * (s.data[i].obs - (s.data[i].env_mean - s.pop_mean) - s.pop_mean)).toFixed(1);
+    const ebvA = calcEBV(0); const ebvB = calcEBV(1); const ebvC = calcEBV(2);
+    
+    document.querySelectorAll('.dt_ebv_a').forEach(el => el.textContent = ebvA > 0 ? '+'+ebvA : ebvA);
+    document.querySelectorAll('.dt_ebv_b').forEach(el => el.textContent = ebvB > 0 ? '+'+ebvB : ebvB);
+    document.querySelectorAll('.dt_ebv_c').forEach(el => el.textContent = ebvC > 0 ? '+'+ebvC : ebvC);
+    document.querySelectorAll('.dt_acc_a').forEach(el => el.textContent = s.data[0].acc.toFixed(2));
+    document.querySelectorAll('.dt_acc_b').forEach(el => el.textContent = s.data[1].acc.toFixed(2));
+    document.querySelectorAll('.dt_acc_c').forEach(el => el.textContent = s.data[2].acc.toFixed(2));
+    
+    document.getElementById('dt_step6_mean').textContent = `+${s.step6_mean.toFixed(2)}`;
+    document.getElementById('kpi_val1').textContent = `${s.data[0].obs} ${s.unit}`;
+}
+
+function show(n){
+  document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));
+  document.getElementById(n==='complete'?'complete':'step'+n).classList.add('active');
+  if(n!=='complete'){
+    document.getElementById('bar').style.width=(n/total*100)+'%';
+    step=n;
+  }
+}
+
+function feedback(id,ok,msg){
+  const e=document.getElementById(id);
+  e.className='feedback '+(ok?'correct':'incorrect');
+  e.style.display='block';
+  e.innerHTML=msg;
+}
+
+function addWorked(title, details){
+  if(worked.some(x=>x.title===title)) return;
+  worked.push({title,details});
+  const container=document.getElementById('workedEntries');
+  const empty=document.getElementById('workedEmpty');
+  if(empty) empty.remove();
+  const entry=document.createElement('div');
+  entry.className='worked-entry';
+  const heading=document.createElement('strong');
+  heading.textContent=title;
+  const calc=document.createElement('div');
+  calc.className='worked-calc';
+  calc.textContent=details;
+  entry.appendChild(heading);
+  entry.appendChild(calc);
+  container.appendChild(entry);
+}
+
+function value(id){ return document.getElementById(id).value; }
+
+function checkStep1() {
+    const s = scenarios[currentScenario];
+    const el = document.querySelector('input[name="q1"]:checked');
+    if(!el){feedback('f1',false,'Please select an answer first.');return;}
+    if(el.value==='A'){
+        addWorked('Step 1 — Phenotype trap',`Selected ${s.animal}: A (highest observed = ${s.data[0].obs} ${s.unit})`);
+        feedback('f1',true,`Correct. ${s.animal_cap} A has the highest observed performance, but that is exactly why we need to adjust for environmental effects.`);
+        setTimeout(()=>show(step+1),900);
+    } else {
+        feedback('f1',false,'Not quite. Look closely at the observed gain column first.');
+    }
+}
+
+function checkStep2() {
+    const s = scenarios[currentScenario];
+    const expected = [
+        ['p1', s.data[0].env_mean - s.pop_mean],
+        ['p2', s.data[1].env_mean - s.pop_mean],
+        ['p3', s.data[2].env_mean - s.pop_mean]
+    ];
+    checkNumbers(expected, 'f2', 0, 2);
+}
+
+function checkStep3() {
+    const s = scenarios[currentScenario];
+    const expected = [
+        ['a3', s.data[0].obs - (s.data[0].env_mean - s.pop_mean)],
+        ['b3', s.data[1].obs - (s.data[1].env_mean - s.pop_mean)],
+        ['c3', s.data[2].obs - (s.data[2].env_mean - s.pop_mean)]
+    ];
+    checkNumbers(expected, 'f3', 0, 3);
+}
+
+function checkStep4() {
+    const s = scenarios[currentScenario];
+    const calcEBV = (i) => s.h2 * (s.data[i].obs - (s.data[i].env_mean - s.pop_mean) - s.pop_mean);
+    const expected = [
+        ['a4', calcEBV(0)],
+        ['b4', calcEBV(1)],
+        ['c4', calcEBV(2)]
+    ];
+    checkNumbers(expected, 'f4', 0.1, 4);
+}
+
+function checkStep5() {
+    const el = document.querySelector('input[name="q5"]:checked');
+    if(!el){feedback('f5',false,'Please select an answer first.');return;}
+    if(el.value==='3'){
+        addWorked('Step 5 — Accuracy','Selected statement: B has a slightly higher EBV, but C\'s EBV is much more accurate.');
+        feedback('f5',true,'Correct. Good interpretation. Continue to the next step.');
+        setTimeout(()=>show(step+1),900);
+    } else {
+        feedback('f5',false,'Not quite. Think about what the question is asking and examine the data again.');
+    }
+}
+
+function selectionDecision(){
+  const s = scenarios[currentScenario];
+  const selected=[...document.querySelectorAll('input[name="sel"]:checked')].map(x=>x.value);
+  if(selected.length!==2){feedback('f6',false,`Select exactly two ${s.animal_pl}.`);return;}
+  if(selected.includes('B')&&selected.includes('C')){
+    addWorked('Step 6 — Selection decision',`Selected ${s.animal_pl}: `+selected.join(' and ')+'\nReason: both have positive EBVs; C also has substantially higher accuracy.');
+    feedback('f6',true,`A defensible choice for this simplified exercise is B and C: both have positive EBVs, while C also has substantially higher accuracy.`);
+    setTimeout(()=>show(7),1100);
+  }else feedback('f6',false,'Reconsider the EBVs first. Your immediate objective is increased performance, and you also want reasonable confidence in the predictions.');
+}
+
+function checkStep7() {
+    const s = scenarios[currentScenario];
+    checkNumbers([['r7', s.step7_ans]], 'f7', 0.01, 7);
+}
+
+function checkNumbers(items, id, tol, stepNum) {
+  let ok = true;
+  for (const [field, expected] of items) {
+    const v = parseFloat(document.getElementById(field).value);
+    if (isNaN(v) || Math.abs(v - expected) > tol) ok = false;
+  }
+  if (ok) {
+    const s = scenarios[currentScenario];
+    if (stepNum === 2) {
+      addWorked('Step 2 — Environment effects', 
+        `${s.env_cap} 1: ${s.data[0].env_mean} − ${s.pop_mean} = ${value('p1')} ${s.unit}\n`+
+        `${s.env_cap} 2: ${s.data[1].env_mean} − ${s.pop_mean} = ${value('p2')} ${s.unit}\n`+
+        `${s.env_cap} 3: ${s.data[2].env_mean} − ${s.pop_mean} = ${value('p3')} ${s.unit}`);
+    } else if (stepNum === 3) {
+      const formatSign = (val) => val < 0 ? `− (−${Math.abs(val)})` : `− ${val}`;
+      addWorked('Step 3 — Adjusted phenotypes',
+        `A: ${s.data[0].obs} ${formatSign(s.data[0].env_mean - s.pop_mean)} = ${value('a3')} ${s.unit}\n`+
+        `B: ${s.data[1].obs} ${formatSign(s.data[1].env_mean - s.pop_mean)} = ${value('b3')} ${s.unit}\n`+
+        `C: ${s.data[2].obs} ${formatSign(s.data[2].env_mean - s.pop_mean)} = ${value('c3')} ${s.unit}`);
+    } else if (stepNum === 4) {
+      addWorked('Step 4 — Own-record EBVs',
+        `A: ${s.h2.toFixed(2)} × (${value('a3')} − ${s.pop_mean}) = ${value('a4')} ${s.unit}\n`+
+        `B: ${s.h2.toFixed(2)} × (${value('b3')} − ${s.pop_mean}) = ${value('b4')} ${s.unit}\n`+
+        `C: ${s.h2.toFixed(2)} × (${value('c3')} − ${s.pop_mean}) = ${value('c4')} ${s.unit}`);
+    } else if (stepNum === 7) {
+      addWorked('Step 7 — Expected sire contribution', `0.5 × ${s.step6_mean} = ${value('r7')} ${s.unit}`);
+    }
+    feedback(id, true, 'Correct. Your calculations are consistent with the model.');
+    setTimeout(() => show(step + 1), 900);
+  } else {
+    feedback(id, false, 'Some values are incorrect. Check the formula and sign of the environmental effect.');
+  }
+}
+
+function finish(){show('complete');}
+</script>
+</body>
+</html>
