@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chi-Square Calculator for Hardy-Weinberg Equilibrium</title>
+<style>
+    :root {
+        --primary: #104E8B;
+        --secondary: #3EC9F5;
+        --accent: #f59e0b;
+        --bg-color: #f0f8ff;
+        --text-main: #333;
+    }
+    
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: var(--secondary);
+        color: var(--text-main);
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #eee;
+    }
+
+    h1 {
+        color: var(--primary);
+        margin-top: 0;
+        font-size: 24px;
+    }
+
+    .author {
+        font-size: 14px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .section-title {
+        color: var(--primary);
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+        margin-bottom: 15px;
+        margin-top: 25px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .data-table td {
+        padding: 10px;
+        border: 1px solid #ddd;
+    }
+
+    .data-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .data-table td:first-child {
+        width: 60%;
+        font-weight: 500;
+    }
+
+    .data-table input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    .data-table output {
+        font-weight: bold;
+        color: var(--primary);
+        font-size: 16px;
+    }
+
+    .btn-container {
+        text-align: center;
+        margin: 40px 0 20px;
+    }
+
+    .btn {
+        background-color: var(--primary);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #0d3b66;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    
+    .close-btn:hover {
+        color: var(--accent);
+    }
+
+    /* High-Res Probability Table CSS */
+    .prob-table-wrapper {
+        overflow-x: auto;
+        margin-top: 15px;
+    }
+
+    .prob-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid #000;
+        font-family: "Times New Roman", Times, serif; /* Classic academic look */
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .prob-table th, .prob-table td {
+        border: 1px solid #000;
+        padding: 10px 8px;
+    }
+    
+    .prob-table th {
+        font-weight: normal;
+    }
+
+    .prob-table .header-row-1 th {
+        padding: 15px;
+    }
+
+    .prob-table .col-sig {
+        font-weight: bold;
+        background-color: #f4f4f4; /* Slight highlight for the 5% column */
+    }
+    
+    .modal-title {
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin-top: 0;
+        padding-right: 30px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section">
+        <h1>Chi-square calculator for problems involving Hardy-Weinberg Equilibrium</h1>
+        <div class="author">Created by Sameer D. Pant</div>
+    </div>
+
+    <form id="calcForm">
+        <!-- Input Section -->
+        <table class="data-table">
+            <tr>
+                <td>Enter Observed Number for Homozygous Dominant Genotype (e.g. AA)</td>
+                <td><input type="number" id="obsAA" value="0" min="0" oninput="calculate()"></td>
+            </tr>
+            <tr>
+                <td>Enter Observed Number for Heterozygous Genotype (e.g. Aa)</td>
+                <td><input type="number" id="obsAa" value="0" min="0" oninput="calculate()"></td>
+            </tr>
+            <tr>
+                <td>Enter Observed Number for Homozygous Recessive Genotype (e.g. aa)</td>
+                <td><input type="number" id="obsaa" value="0" min="0" oninput="calculate()"></td>
+            </tr>
+            <tr>
+                <td><strong>Total Number of Observations</strong></td>
+                <td><output id="totalObs">0</output></td>
+            </tr>
+        </table>
+
+        <!-- Frequencies Section -->
+        <h2 class="section-title">Observed Genotype and Allele Frequencies</h2>
+        <table class="data-table">
+            <tr>
+                <td>Genotype Frequency for homozygous dominant (AA)</td>
+                <td><output id="freqAA">0.00</output></td>
+            </tr>
+            <tr>
+                <td>Genotype Frequency for heterozygous (Aa)</td>
+                <td><output id="freqAa">0.00</output></td>
+            </tr>
+            <tr>
+                <td>Genotype Frequency for homozygous recessive (aa)</td>
+                <td><output id="freqaa">0.00</output></td>
+            </tr>
+            <tr>
+                <td>Allele Frequency for dominant allele (A)</td>
+                <td><output id="alleleA">0.00</output></td>
+            </tr>
+            <tr>
+                <td>Allele Frequency for recessive allele (a)</td>
+                <td><output id="allelea">0.00</output></td>
+            </tr>
+        </table>
+
+        <!-- Expected Numbers Section -->
+        <h2 class="section-title">Expected Genotype Numbers</h2>
+        <table class="data-table">
+            <tr>
+                <td>Expected Genotype Number for homozygous dominant (AA)</td>
+                <td><output id="expAA">0.00</output></td>
+            </tr>
+            <tr>
+                <td>Expected Genotype Number for heterozygous (Aa)</td>
+                <td><output id="expAa">0.00</output></td>
+            </tr>
+            <tr>
+                <td>Expected Genotype Number for homozygous recessive (aa)</td>
+                <td><output id="expaa">0.00</output></td>
+            </tr>
+        </table>
+
+        <!-- Results Section -->
+        <h2 class="section-title">Chi-Square Value</h2>
+        <table class="data-table">
+            <tr>
+                <td>Chi-Square Value (1 Degree of Freedom)</td>
+                <td><output id="chiSquareVal">0.0000</output></td>
+            </tr>
+        </table>
+    </form>
+
+    <div class="btn-container">
+        <button class="btn" onclick="openModal()">View Chi-Square Probability Table</button>
+    </div>
+</div>
+
+<!-- Probability Table Modal -->
+<div class="modal-overlay" id="probModal" onclick="closeModalOnBG(event)">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">×</button>
+        <h2 class="modal-title">Chi-Square Probability Table</h2>
+        
+        <div class="prob-table-wrapper">
+            <table class="prob-table">
+                <thead>
+                    <tr class="header-row-1">
+                        <th rowspan="2" style="width: 12%;">Degrees of<br>Freedom</th>
+                        <th colspan="9">Possibility of Chance Occurrence in Percentage<br>(5% or Less Considered Significant)</th>
+                    </tr>
+                    <tr>
+                        <th>90%</th>
+                        <th>80%</th>
+                        <th>70%</th>
+                        <th>50%</th>
+                        <th>30%</th>
+                        <th>20%</th>
+                        <th>10%</th>
+                        <th class="col-sig">5%<br>(sig.)</th>
+                        <th>1%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td><td>0.016</td><td>0.064</td><td>0.148</td><td>0.455</td><td>1.074</td><td>1.642</td><td>2.706</td><td class="col-sig">3.841</td><td>6.635</td>
+                    </tr>
+                    <tr>
+                        <td>2</td><td>0.211</td><td>0.446</td><td>0.713</td><td>1.386</td><td>2.408</td><td>3.219</td><td>4.605</td><td class="col-sig">5.991</td><td>9.210</td>
+                    </tr>
+                    <tr>
+                        <td>3</td><td>0.584</td><td>1.005</td><td>1.424</td><td>2.366</td><td>3.665</td><td>4.642</td><td>6.251</td><td class="col-sig">7.815</td><td>11.341</td>
+                    </tr>
+                    <tr>
+                        <td>4</td><td>1.064</td><td>1.649</td><td>2.195</td><td>3.357</td><td>4.878</td><td>5.989</td><td>7.779</td><td class="col-sig">9.488</td><td>13.277</td>
+                    </tr>
+                    <tr>
+                        <td>5</td><td>1.610</td><td>2.343</td><td>3.000</td><td>4.351</td><td>6.064</td><td>7.289</td><td>9.236</td><td class="col-sig">11.070</td><td>15.086</td>
+                    </tr>
+                    <tr>
+                        <td>6</td><td>2.204</td><td>3.070</td><td>3.828</td><td>5.348</td><td>7.231</td><td>8.558</td><td>10.645</td><td class="col-sig">12.592</td><td>16.812</td>
+                    </tr>
+                    <tr>
+                        <td>7</td><td>2.833</td><td>3.822</td><td>4.671</td><td>6.346</td><td>8.383</td><td>9.083</td><td>12.017</td><td class="col-sig">14.067</td><td>18.475</td>
+                    </tr>
+                    <tr>
+                        <td>8</td><td>3.490</td><td>4.594</td><td>5.527</td><td>7.344</td><td>9.524</td><td>11.030</td><td>13.362</td><td class="col-sig">15.507</td><td>20.090</td>
+                    </tr>
+                    <tr>
+                        <td>9</td><td>4.168</td><td>5.380</td><td>6.393</td><td>8.343</td><td>10.656</td><td>12.242</td><td>14.684</td><td class="col-sig">16.919</td><td>21.666</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculate() {
+    // Get observed values
+    const obsAA = parseFloat(document.getElementById('obsAA').value) || 0;
+    const obsAa = parseFloat(document.getElementById('obsAa').value) || 0;
+    const obsaa = parseFloat(document.getElementById('obsaa').value) || 0;
+    
+    // Total Observations
+    const total = obsAA + obsAa + obsaa;
+    document.getElementById('totalObs').textContent = total;
+
+    if (total === 0) {
+        resetOutputs();
+        return;
+    }
+
+    // Genotype Frequencies
+    const freqAA = (obsAA / total).toFixed(2);
+    const freqAa = (obsAa / total).toFixed(2);
+    const freqaa = (obsaa / total).toFixed(2);
+    
+    document.getElementById('freqAA').textContent = freqAA;
+    document.getElementById('freqAa').textContent = freqAa;
+    document.getElementById('freqaa').textContent = freqaa;
+
+    // Allele Frequencies
+    const alleleA = ((obsAA + 0.5 * obsAa) / total).toFixed(2);
+    const allelea = (1 - parseFloat(alleleA)).toFixed(2);
+    
+    document.getElementById('alleleA').textContent = alleleA;
+    document.getElementById('allelea').textContent = allelea;
+
+    // Expected Numbers
+    const expAA = (Math.pow(parseFloat(alleleA), 2) * total).toFixed(2);
+    const expAa = (2 * parseFloat(alleleA) * parseFloat(allelea) * total).toFixed(2);
+    const expaa = (Math.pow(parseFloat(allelea), 2) * total).toFixed(2);
+    
+    document.getElementById('expAA').textContent = expAA;
+    document.getElementById('expAa').textContent = expAa;
+    document.getElementById('expaa').textContent = expaa;
+
+    // Chi-Square Calculation
+    let chiSq = 0;
+    if (parseFloat(expAA) > 0) chiSq += Math.pow(obsAA - parseFloat(expAA), 2) / parseFloat(expAA);
+    if (parseFloat(expAa) > 0) chiSq += Math.pow(obsAa - parseFloat(expAa), 2) / parseFloat(expAa);
+    if (parseFloat(expaa) > 0) chiSq += Math.pow(obsaa - parseFloat(expaa), 2) / parseFloat(expaa);
+    
+    document.getElementById('chiSquareVal').textContent = chiSq.toFixed(4);
+}
+
+function resetOutputs() {
+    const outputs = ['freqAA', 'freqAa', 'freqaa', 'alleleA', 'allelea', 'expAA', 'expAa', 'expaa'];
+    outputs.forEach(id => {
+        document.getElementById(id).textContent = "0.00";
+    });
+    document.getElementById('chiSquareVal').textContent = "0.0000";
+}
+
+// Modal Functions
+function openModal() {
+    document.getElementById('probModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('probModal').classList.remove('active');
+}
+
+function closeModalOnBG(event) {
+    if (event.target === document.getElementById('probModal')) {
+        closeModal();
+    }
+}
+</script>
+
+</body>
+</html>
